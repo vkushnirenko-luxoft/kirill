@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: post-service
+    image: postgres:9-alpine
+    environment:
+      - .env
+    volumes:
+      - ${PWD}/db_migration/cdp_dump.sql:/home/postgres/cdp_dump.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - work_network
+    labels:
+      container_group: work_env
+
+
+  rabbitmq:
+    container_name: rabb-service
+    image: rabbitmq:3-management-alpine
+    environment:
+      - .env
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    depends_on:
+      - postgres
+    networks:
+      - work_network
+    labels:
+      container_group: work_env
+
+
+  postgres_test:
+      container_name: post-service-test
+      image: postgres:9-alpine
+      environment:
+        - .env
+      networks:
+        - test_network
+      labels:
+        container_group: test_env
+
+
+  rabbitmq_test:
+      container_name: rabb-service-test
+      image: rabbitmq:3-management-alpine
+      environment:
+        - .env
+      depends_on:
+        - postgres_test
+      networks:
+        - test_network
+      labels:
+        container_group: test_env
+
+  application:
+      container_name: build
+      image: openjdk:8-jdk
+      environment:
+        - .env
+      volumes:
+        - ${project_home}:/root
+      command: ./build_script
+
+networks:
+    work_network:
+    test_network:
