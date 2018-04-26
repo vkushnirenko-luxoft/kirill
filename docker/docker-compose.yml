@@ -61,8 +61,8 @@ services:
       environment:
         - .env
       volumes:
-        - ${project_home}:/root
-      command: ./build_script
+        - .:/data
+      command: ./data/build_script
 
 networks:
     work_network:
